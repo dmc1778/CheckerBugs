@@ -121,7 +121,7 @@ def bar_chart_plot(df, strategy):
 def bar_chart_plot_all_one(df, libname):
 
     df_filtered = df[df["Library"] == libname].copy()
-
+    df_filtered = df_filtered[df_filtered['Strategy'] != 'basic']
     df_filtered["Correct"] = df_filtered["Predicted"] == df_filtered["Actual"]
     accuracy_df = df_filtered.groupby(["ModelName", "Strategy"])["Correct"].mean().reset_index()
 
@@ -238,7 +238,7 @@ def plot_reasoning_accuracy():
     
     # Plot
     plt.figure(figsize=(12, 6))
-    ax = sns.barplot(data=ratio_df, x="ModelName", y="Correct", hue="ModelName")
+    ax = sns.barplot(data=ratio_df, x="ModelName", y="Fraction_of_1s", hue="ModelName")
 
     for p in ax.patches:
         ax.annotate(
@@ -257,7 +257,15 @@ def plot_reasoning_accuracy():
     plt.show()
 
 if __name__ == '__main__':
-    # plot_model_performance('pytorch')
-    plot_reasoning_accuracy()
+    import sys
+    target = sys.argv[1]
+    if target == 'fig2':
+        libname = sys.argv[2]
+        plot_model_performance(libname)
+    elif target == 'fig3':
+        plot_reasoning_accuracy()
+    else:
+        print("Invalid target. Use 'fig2' or 'fig3'.")
+
 
     
