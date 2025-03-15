@@ -10,6 +10,7 @@ from sklearn.decomposition import PCA
 import sys
 sys.path.insert(0, '/home/nima/repository/TensorGuard')
 from utils.utils import load_json
+from sklearn.manifold import TSNE
 
 def load_data(csv_file):
     df = pd.read_csv(csv_file, sep=',', encoding='utf-8')
@@ -99,18 +100,17 @@ def line_graphs(df):
     plt.show()
 
 def bar_chart_plot(df, strategy):
-    # Filter data for zero-shot strategy
+
     df_zero_shot = df[df["Strategy"] == strategy].copy()
 
-    # Compute accuracy per model and temperature
     df_zero_shot["Correct"] = df_zero_shot["Predicted"] == df_zero_shot["Actual"]
     accuracy_df = df_zero_shot.groupby(["ModelName", "Temperature"])["Correct"].mean().reset_index()
 
-    # Plot
+
     plt.figure(figsize=(12, 6))
     sns.barplot(data=accuracy_df, x="Temperature", y="Correct", hue="ModelName")
 
-    # Labels and title
+
     plt.xlabel("Temperature")
     plt.ylabel("Accuracy")
     plt.title("Model Performance Across Temperature (Zero-Shot Strategy)")
@@ -119,9 +119,9 @@ def bar_chart_plot(df, strategy):
     plt.show()
 
 def bar_chart_plot_all_one(df, libname):
-    # Filter data for temperature = 0.4
+
     df_filtered = df[df["Library"] == libname].copy()
-    # Compute accuracy per model and strategy
+
     df_filtered["Correct"] = df_filtered["Predicted"] == df_filtered["Actual"]
     accuracy_df = df_filtered.groupby(["ModelName", "Strategy"])["Correct"].mean().reset_index()
 
@@ -131,34 +131,35 @@ def bar_chart_plot_all_one(df, libname):
     plt.figure(figsize=(12, 6))
     ax = sns.barplot(data=accuracy_df, x="Strategy", y="Correct", hue="ModelName")
 
-    # Annotate bars with accuracy values
     for p in ax.patches:
         ax.annotate(
-            f'{p.get_height():.2f}',  # Format to 2 decimal places
-            (p.get_x() + p.get_width() / 2, p.get_height()),  # Position at the top center of the bar
+            f'{p.get_height():.2f}', 
+            (p.get_x() + p.get_width() / 2, p.get_height()), 
             ha='center', va='bottom', fontsize=10, fontweight='bold', color='black'
         )
 
-    # Labels and title
     plt.xlabel("Strategy")
     plt.ylabel("Accuracy")
     plt.title("Model Performance Across Prompting Strategies (Temperature = 0)")
     plt.legend(title="Model")
     plt.grid(True)
 
-    # Show the plot
+
     plt.show()
     
 def codeDistribution(code_snippets1, code_snippets2):
     tokenizer = AutoTokenizer.from_pretrained("microsoft/codebert-base")
     model = AutoModel.from_pretrained("microsoft/codebert-base")
+    
+    device = torch.device("cuda")
+    model = model.to(device)
     model.eval()
     def get_embedding(code):
-        """Obtain the [CLS] embedding from CodeBERT for a given code snippet."""
         with torch.no_grad():
             inputs = tokenizer(code, return_tensors="pt", truncation=True, padding=True, max_length=512)
+            inputs = {k: v.to(device) for k, v in inputs.items()}
             outputs = model(**inputs)
-            cls_embedding = outputs.last_hidden_state[:, 0, :].squeeze().numpy()
+            cls_embedding = outputs.last_hidden_state[:, 0, :].squeeze().cpu().numpy()
         return cls_embedding
 
     embeddings1 = np.array([get_embedding(code) for code in code_snippets1])
@@ -168,8 +169,11 @@ def codeDistribution(code_snippets1, code_snippets2):
     embeddings = np.concatenate([embeddings1, embeddings2], axis=0)
     labels = [0] * len(embeddings1) + [1] * len(embeddings2)
 
-    pca = PCA(n_components=2)
-    embeddings_2d = pca.fit_transform(embeddings)
+    # pca = PCA(n_components=3)
+    # embeddings_2d = pca.fit_transform(embeddings)
+
+    tsne = TSNE(n_components=2, perplexity=30, random_state=42)
+    embeddings_2d = tsne.fit_transform(embeddings)
 
     plt.figure(figsize=(8, 6))
     plt.scatter(embeddings_2d[:len(embeddings1), 0],
@@ -178,28 +182,27 @@ def codeDistribution(code_snippets1, code_snippets2):
     plt.scatter(embeddings_2d[len(embeddings1):, 0],
                 embeddings_2d[len(embeddings1):, 1],
                 color='red', label='TensorFlow', alpha=0.5)
-    plt.xlabel('PCA Component 1')
-    plt.ylabel('PCA Component 2')
-    plt.title('CodeBERT embeddings PCA visualization for PyTorch and TensorFlow libraries.')
-    plt.legend()
+    plt.xlabel('Component 1', fontsize=14, fontweight='bold')
+    plt.ylabel('Component 2', fontsize=14, fontweight='bold')
+    # plt.title('CodeBERT embeddings PCA visualization for PyTorch and TensorFlow libraries.')
+    plt.legend(prop={'size': 14, 'weight': 'bold'})
     plt.show()
 
-    # Additionally, plot histograms of snippet lengths as a simple feature
+    # this plots histogram for token distributions
     lengths1 = [len(code.split()) for code in code_snippets1]
     lengths2 = [len(code.split()) for code in code_snippets2]
 
     plt.figure(figsize=(8, 6))
     plt.hist(lengths1, bins=10, alpha=0.5, label='PyTorch')
     plt.hist(lengths2, bins=10, alpha=0.5, label='TensorFlow')
-    plt.xlabel('Number of Tokens')
-    plt.ylabel('Frequency')
-    plt.title('Distribution of code snippet lengths for PyTorch and TensorFlow libraries.')
-    plt.legend()
+    plt.xlabel('Number of Tokens', fontsize=14, fontweight='bold')
+    plt.ylabel('Frequency', fontsize=14, fontweight='bold')
+    # plt.title('Distribution of code snippet lengths for PyTorch and TensorFlow libraries.')
+    plt.legend(prop={'size': 14, 'weight': 'bold'})
     plt.show()
 
-def plot_model_performance():
+def plot_model_performance(libname):
     df = load_data(f"output/all_results_filtered.csv")
-    libname = 'tensorflow'
     bar_chart_plot_all_one(df, libname)
 
 def plot_data_distribution():
@@ -218,9 +221,43 @@ def plot_data_distribution():
                     code_snippet = patch['hunk_buggy'].replace('-', '')
                     patch_dict[libname].append(code_snippet)
     codeDistribution(patch_dict['pytorch'], patch_dict['tensorflow'])
+    
+    
+def plot_reasoning_accuracy():
+    df = load_data(f"output/rootCauseAcc.csv")
+
+    df["RootCauseLabel"] = df["RootCauseLabel"].replace({"o": "0", "O": "0"})
+    
+    df["RootCauseLabel"] = df["RootCauseLabel"].astype(int)
+
+    ratio_df = (
+        df.groupby("ModelName")["RootCauseLabel"]
+        .mean()
+        .reset_index(name="Fraction_of_1s")
+    )
+    
+    # Plot
+    plt.figure(figsize=(12, 6))
+    ax = sns.barplot(data=ratio_df, x="ModelName", y="Correct", hue="ModelName")
+
+    for p in ax.patches:
+        ax.annotate(
+            f'{p.get_height():.2f}', 
+            (p.get_x() + p.get_width() / 2, p.get_height()), 
+            ha='center', va='bottom', fontsize=10, fontweight='bold', color='black'
+        )
+
+    plt.xlabel("Strategy")
+    plt.ylabel("Accuracy")
+    plt.title("Model Performance Across Prompting Strategies (Temperature = 0)")
+    plt.legend(title="Model")
+    plt.grid(True)
+
+
+    plt.show()
 
 if __name__ == '__main__':
-    # plot_model_performance()
-    plot_data_distribution()
+    # plot_model_performance('pytorch')
+    plot_reasoning_accuracy()
 
     

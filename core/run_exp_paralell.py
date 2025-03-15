@@ -36,6 +36,7 @@ class MyPrompts:
         self.cot_1 = False
         self.cot_2 = False
         self.cot_3 = False
+        self.basic = False
         self.strategy = strategy
         self.shots = shots
         
@@ -45,11 +46,22 @@ class MyPrompts:
             self.cot_2 = True
         elif self.strategy == 'cot_3':
             self.cot_3 = True
+        elif self.strategy == 'basic':
+            self.basic = True
         else:
             return
         
     def setPrompt(self):
-        if self.cot_1:
+        if self.basic:
+            prompt = """
+            You are a software engineer specializing in static analysis and bug detection AI frameworks. 
+            Your task is to classify the following code snippet as buggy or not. 
+            Generate YES or NO response.
+            Generate your reasoning steps based on above steps, limit your generated tokens to 1000.
+            \n{format_instructions}\n{query}\n"""
+            return prompt
+        
+        elif self.cot_1:
             prompt = """
             You are a software engineer specializing in static analysis and bug detection AI frameworks. 
             Your task is to classify the following code snippet as buggy or not. 
@@ -69,7 +81,6 @@ class MyPrompts:
             
             7. Generate your reasoning steps based on above steps, limit your generated tokens to 1000.
             
-            Label:
             \n{format_instructions}\n{query}\n"""
             return prompt
         
@@ -109,7 +120,7 @@ class MyPrompts:
             Your task is to classify the following code snippet as buggy or not. 
             Follow the steps below to reason through the problem and arrive at a conclusion.
             
-            Here are some examples buggy code and the fix:
+            Here are some examples of buggy code snippet:
             """
             for i, shot in enumerate(self.shots, start=1):
                 deleted_lines = shot["Deleted lines"]
@@ -140,7 +151,7 @@ class MyPrompts:
         else:
             return
 
-def _chainOp(provider, model_name, temperature, shots, strategy='cot_1'):
+def _chainOp(provider, model_name, temperature, shots=None, strategy='cot_1'):
 
     llm = model_obj.get_llm(provider, model_name, temperature)
     
@@ -305,7 +316,10 @@ def process_instance(args):
                 code_snippet = patch['hunk_buggy'].replace('-', '')
                 #output = llm.invoke(f"{prompt_template} {code_snippet}")
                 
-                prompt_and_model, parser = _chainOp(provider, model_name, temperature, _shot, strategy=strategy)
+                if strategy == 'cot_3':
+                    prompt_and_model, parser = _chainOp(provider, model_name, temperature, _shot, strategy=strategy)
+                else:
+                    prompt_and_model, parser = _chainOp(provider, model_name, temperature, strategy=strategy)
                 
                 output = prompt_and_model.invoke({"query": code_snippet})
                 
@@ -361,7 +375,7 @@ def main(args):
         for model_name in current_models:
                 # i / 10 for i in range(7, 8)
             for temperature in [0.6]:
-                for strategy in ['cot_3']:
+                for strategy in ['basic']:
                     for idx, instance in enumerate(data):
                             # process_instance(iteration, lib_name, model_name, temperature, strategy, instance, rule_data, prompt_obj, idx, data, provider, mode)
                         tasks.append((iteration, lib_name, model_name, temperature, strategy, instance, rule_data, None, idx, data, provider, mode))
