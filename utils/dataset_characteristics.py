@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from statistics import mean
 import sys
-sys.path.insert(0, '/home/nima/repository/TensorGuard')
+sys.path.insert(0, '/home/USER/repository/TensorGuard')
 from utils.utils import load_json
 
 def general_overview(data):

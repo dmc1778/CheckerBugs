@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 import time, random
 from sklearn.model_selection import train_test_split
 from git import Repo
-sys.path.insert(0, "/home/nima/repository/TensorGuard")
+sys.path.insert(0, "/home/USER/repository/TensorGuard")
 from utils.constants import MLREPOS_GITHUB_LINK
 import subprocess
 

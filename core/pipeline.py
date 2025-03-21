@@ -1,6 +1,6 @@
 
 import sys
-sys.path.insert(0, "/home/nima/repository/TensorGuard")
+sys.path.insert(0, "/home/USER/repository/TensorGuard")
 from utils.utils import get_pipe, load_json
 from utils.constants import MODEL_NAMES
 from transformers import pipeline

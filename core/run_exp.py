@@ -8,7 +8,7 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate
 from pydantic import BaseModel, Field, model_validator
 import sys
-sys.path.insert(0, '/home/nima/repository/TensorGuard')
+sys.path.insert(0, '/home/USER/repository/TensorGuard')
 from utils.utils import load_json, write_to_csv, write_list_to_txt, read_txt, separate_added_deleted, is_buggy, file_io
 from models.registered_models import LLMs
 import logging
