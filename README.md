@@ -1,8 +1,8 @@
 ## Replication Package
 This is the open-source repository of the paper titled **Demystifying Checker Bugs in Deep Learning Libraries** Submitted
-to the **ICSE2026** conference. 
+to the **TOSEM** journal. 
 
-:wave: We have taken extensive measures to ensure that this GitHub repository remains anonymous. We are also constantly updating the repository to improve the package's reproducibility for other researchers.
+:wave: We are also constantly updating the repository to improve the package's reproducibility for other researchers.
 
 [//]: # (<img src="https://github.com/icse2026/blob/master/assets/ML_APR_flow_new.png" width="600" class="center">)
 
@@ -42,14 +42,14 @@ Then you have to install the required dependencies:
 ```
 pip install -r requirements.txt
 ```
-Once all required dependencies are installed, create an ```.env``` file in the root of the project and put your API keys (OpenAI and Fireworks keys):
+Once all required dependencies are installed, create a ```.env``` file in the root of the project and put your API keys (OpenAI and Fireworks keys):
 ```
 OPENAI_API_KEY=""
 FIREWORKS_API_KEY=""
 ```
 #### :rocket: Building evaluation dataset
 
-cd to ```core``` directory. Run the following command to construct dataset for PyTorch library:
+cd to ```core``` directory. Run the following command to construct a dataset for the PyTorch library:
 
 ```
 python core/build_commit_database.py pytorch pytorch taxonomy
@@ -61,7 +61,7 @@ And the following command for TensorFlow:
 python core/build_commit_database.py tensorflow tensorflow taxonomy
 ```
 #### :rocket: Running LLM models
-Once you created the datasets, run the following command to run ```gpt-4o-mini``` on the pytorch dataset:
+Once you have created the datasets, run the following command to run ```gpt-4o-mini``` on the PyTorch dataset:
 ```
 python core/run_exp_paralell.py pytorch 2 openai regular
 ```
@@ -72,17 +72,17 @@ python core/run_exp_paralell.py tensorflow 2 fireworks regular
 The results will be stored within the ```output``` directory.
 
 #### :rocket: Evaluation
-To generate figure 2a, run the following command:
+To generate Figure 2a, run the following command:
 ```
 python utils/evaluation.py pytorch fig2
 ```
-To generate figure 2b, run the following command:
+To generate Figure 2b, run the following command:
 ```
 python utils/evaluation.py tensorflow fig2
 ```
 You can download the figure 2 data [here](https://github.com/dmc1778/icse2026/blob/master/output/all_results_filtered.csv)
 
-To generate figure 3, run the following command:
+To generate Figure 3, run the following command:
 ```
 python utils/evaluation.py fig3
 ```
@@ -132,9 +132,9 @@ We also used two recently introduced LLM-based DL fuzzers:
 
 ## Getting started
 ### Create conda environments and install the required packages
-To run the fuzzers, you need multiple conda environments. So, please install anaconda3 for Linux from the [this](https://docs.anaconda.com/anaconda/install/linux/) link.
+To run the fuzzers, you need multiple conda environments. So, please install Anaconda3 for Linux from the [this](https://docs.anaconda.com/anaconda/install/linux/) link.
 
-After you successfully installed Anaconda3 for Linux, run the following commands to create environments and install the required packages:
+After you have successfully installed Anaconda3 for Linux, run the following commands to create environments and install the required packages:
 
 To create the environments, run the following commands:
 ```
@@ -154,11 +154,11 @@ By using the versions in this package, you will save a lot of time.
 You can find the versions under the ```fuzzers``` directory.
 
 #### Running NablaFuzz
-Before running FreeFuzz and DeepRel, make sure that you have installed [mongodb](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/#std-label-install-mdb-community-ubuntu) community edition for Linux. DeepRel, and FreeFuzz depend on the MongoDB database as their test inputs are stored within the database. 
+Before running FreeFuzz and DeepRel, make sure that you have installed [mongodb](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/#std-label-install-mdb-community-ubuntu) community edition for Linux. DeepRel and FreeFuzz depend on the MongoDB database as their test inputs are stored within the database. 
 
 We use test inputs of FreeFuzz for DeepRel because these tools are from the same authors and cover the highest number of APIs for both PyTorch and TensorFlow.
 
-Once you installed MongoDB, run the following commands:
+Once you have installed MongoDB, run the following commands:
 
 ```
 mongorestore dump/
@@ -166,7 +166,7 @@ mongorestore dump/
 Now, you have loaded the test inputs into the MongoDB database and are ready to run DeepRel and FreeFuzz.
 
 #### Running DeepRel
-To run DeepRel, please unzip the source to your desired directory, and run the following command to generate test cases for PyTorch:
+To run DeepRel, please unzip the source to your desired directory and run the following command to generate test cases for PyTorch:
 
 ```
 cd DeepREL/pytorch/src
@@ -207,7 +207,7 @@ python main.py --test_round=1000 --mode=all --release=2.13.0 --framework=tf --wo
 python main.py --test_round=1000 --mode=all --release=2.14.0 --framework=tf --work_path=output --filter=all
 ```
 #### Running TitanFuzz
-First, change your directory to TitanFuzz root, then run it using the following command for PyTorch library:
+First, change your directory to TitanFuzz root, then run it using the following command for the PyTorch library:
 ```
 bash scripts/local_run.sh torch data/torch_applicable_apis.txt torch_2.0.1 and 2.0.1 5
 ```
